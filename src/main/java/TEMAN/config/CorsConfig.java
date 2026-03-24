@@ -1,4 +1,4 @@
-package your.newproject.rename.config;
+package TEMAN.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

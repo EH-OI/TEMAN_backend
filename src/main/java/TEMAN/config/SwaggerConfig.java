@@ -1,4 +1,4 @@
-package your.newproject.rename.config;
+package TEMAN.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;

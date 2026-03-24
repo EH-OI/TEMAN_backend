@@ -1,4 +1,4 @@
-package your.newproject.rename.config;
+package TEMAN.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
