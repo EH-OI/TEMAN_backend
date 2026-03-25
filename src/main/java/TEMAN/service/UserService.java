@@ -13,6 +13,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -33,6 +34,10 @@ public class UserService {
     private final JwtUtil jwtUtil;
     private final JavaMailSender javaMailSender;
     private final StringRedisTemplate redisTemplate;
+    @Value("${oauth2.google.client-id}")
+    private String GOOGLE_CLIENT_ID;
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     public Long signup(UserSignupRequestDto userSignupRequestDto) {
         //이메일 중복 체크
@@ -111,13 +116,11 @@ public class UserService {
     public SocialLoginResponseDto socialLogin(SocialLoginRequestDto socialLoginRequestDto) {
         String email = "";
         String socialId = "";
-
-        // 프론트엔드에서 발급받은 Google Web Client ID
-        String GOOGLE_CLIENT_ID = "여기에_실제_구글_클라이언트_ID";
+        String fullName = "Please enter your name. "; // 구글에 이름이 없을 경우를 대비한 기본값
 
         if (socialLoginRequestDto.provider() == TEMAN.domain.enums.ProviderEnum.GOOGLE) {
             try {
-                // 1. 구글 공식 검증기 객체 생성
+
                 GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
                         .setAudience(Collections.singletonList(GOOGLE_CLIENT_ID))
                         .build();
@@ -130,6 +133,12 @@ public class UserService {
                     GoogleIdToken.Payload payload = idToken.getPayload();
                     email = payload.getEmail();
                     socialId = payload.getSubject();
+
+                    // 🔥 구글에 등록된 실제 사용자 이름(name) 추출 시도
+                    if (payload.get("name") != null) {
+                        fullName = (String) payload.get("name");
+                    }
+
                 } else {
                     throw new IllegalArgumentException("This is an invalid Google ID token.");
                 }
@@ -141,14 +150,37 @@ public class UserService {
         } else if (socialLoginRequestDto.provider() == TEMAN.domain.enums.ProviderEnum.APPLE) { //임시인 부분
             email = "apple_mock_email@icloud.com";
             socialId = "apple_mock_123456";
+            fullName = "Apple User";
         }
+
         // 검증 종료 후
         // 2. DB에서 이메일로 기존 가입자인지 확인
         var optionalUser = userRepository.findUserByEmail(email);
 
-        // 3-A. 신규 유저인 경우 (가입 창으로 보내기)
         if (optionalUser.isEmpty()) {
-            return new SocialLoginResponseDto(true, email, socialId, null);
+            // 1. 앱 전용 필수 아이디(loginId)를 겹치지 않게 자동 생성
+            String randomLoginId = "google_" + UUID.randomUUID().toString().substring(0, 8);
+
+            // 2. 가입 폼을 거치지 않고 강제로 User 엔티티 생성 후 즉시 저장
+            User newUser = User.builder()
+                    .email(email)
+                    .loginId(randomLoginId) // 자동 생성 아이디
+                    .fullName(fullName)     // 구글에서 가져온 실제 이름
+                    .password(null)         // 소셜 가입자 비밀번호 없음
+                    .age(null)              // 마이페이지에서 나중에 입력
+                    .countryEnum(null)      // 마이페이지에서 나중에 입력 (@NotNull 해제)
+                    .phone(null)            // 마이페이지에서 나중에 입력
+                    .roleEnum(RoleEnum.USER)
+                    .isOriginalUser(false)
+                    .providerEnum(socialLoginRequestDto.provider())
+                    .socialId(socialId)
+                    .build();
+
+            userRepository.save(newUser);
+
+            // 3. 가입 즉시 JWT 토큰 발급해서 로그인 성공시켜버림 (isNewUser = false 로 반환)
+            String jwtToken = jwtUtil.createAccessToken(newUser.getEmail(), newUser.getRoleEnum());
+            return new SocialLoginResponseDto(false, newUser.getEmail(), newUser.getSocialId(), jwtToken);
         }
 
         User user = optionalUser.get();
@@ -219,9 +251,7 @@ public class UserService {
                 Duration.ofMinutes(5)
         );
 
-        // 3. 리셋 링크 생성 (실제 프론트엔드 URL로 변경해야 함)
-        // 프론트엔드 라우팅 주소 예시: https://teman-app.com/reset-password?token=어쩌구저쩌구
-        String resetLink = "https://프론트엔드_도메인주소/reset-password?token=" + resetToken;
+        String resetLink = frontendUrl + "/#/reset-password?token=" + resetToken;
 
         // 4. 이메일 발송
         SimpleMailMessage message = new SimpleMailMessage();
