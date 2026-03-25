@@ -45,7 +45,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column
-    @NotNull
+    //@NotNull
     private CountryEnum countryEnum;
 
     @Column
