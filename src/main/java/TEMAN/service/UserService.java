@@ -180,7 +180,7 @@ public class UserService {
 
             // 3. 가입 즉시 JWT 토큰 발급해서 로그인 성공시켜버림 (isNewUser = false 로 반환)
             String jwtToken = jwtUtil.createAccessToken(newUser.getEmail(), newUser.getRoleEnum());
-            return new SocialLoginResponseDto(false, newUser.getEmail(), newUser.getSocialId(), jwtToken);
+            return new SocialLoginResponseDto(true, newUser.getEmail(), newUser.getSocialId(), jwtToken);
         }
 
         User user = optionalUser.get();
@@ -282,6 +282,23 @@ public class UserService {
 
         // 3. 사용 완료된 토큰 파기 (1회용 보장)
         redisTemplate.delete("PWD_RESET:" + requestDto.token());
+    }
+
+    @Transactional
+    public void completeOnboarding(String email, UserOnboardingRequestDto requestDto) {
+        User user = userRepository.findUserByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
+
+        user.completeOnboarding(
+                requestDto.fullName(),
+                requestDto.birthday(),
+                requestDto.genders(),
+                requestDto.showGender(),
+                requestDto.bio(),
+                requestDto.instagramId(),
+                requestDto.interests()
+        );
+
     }
 
 
