@@ -38,4 +38,26 @@ public class JwtUtil {
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256) // HS256 알고리즘으로 암호화 서명!
                 .compact(); // 토큰 문자열로 압축
     }
+
+    public String getEmailFromToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token);
+            return true;
+        } catch (Exception e) {
+            // 실무에서는 여기서 ExpiredJwtException 을 따로 잡아서 처리
+            return false;
+        }
+    }
 }
