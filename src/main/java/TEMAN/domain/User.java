@@ -73,10 +73,10 @@ public class User {
 
     //기존 유저인지 여부
     @Column
-    private boolean isOriginalUser;
+    private Boolean isOriginalUser;
 
     @Column
-    private boolean agreeTerms;
+    private Boolean agreeTerms;
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "user_genders", joinColumns = @JoinColumn(name = "user_id"))
@@ -97,7 +97,7 @@ public class User {
     private String instagramId;
 
     @Builder
-    public User(String email, String loginId, String fullName, String password, Integer age, CountryEnum countryEnum, String phone, String profileImageUrl, List<String> interests, RoleEnum roleEnum, ProviderEnum providerEnum, String socialId, boolean isOriginalUser, boolean agreeTerms, List<GenderEnum> genders, Boolean showGender, LocalDate birthday, String bio, String instagramId) {
+    public User(String email, String loginId, String fullName, String password, Integer age, CountryEnum countryEnum, String phone, String profileImageUrl, List<String> interests, RoleEnum roleEnum, ProviderEnum providerEnum, String socialId, Boolean isOriginalUser, Boolean agreeTerms, List<GenderEnum> genders, Boolean showGender, LocalDate birthday, String bio, String instagramId) {
         this.email = email;
         this.loginId = loginId;
         this.fullName = fullName;
