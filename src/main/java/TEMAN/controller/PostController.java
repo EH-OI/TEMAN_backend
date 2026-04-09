@@ -45,4 +45,25 @@ public class PostController {
         Page<PostResponseDto> posts = postService.getPostCategory(postCategoryEnum, pageable);
         return ResponseEntity.ok(posts);
     }
+
+    //게시글 상세조회
+    @GetMapping("/{postId}")
+    public ResponseEntity<PostResponseDto> getPost(@PathVariable Long postId){
+        PostResponseDto postResponseDto = postService.getPost(postId);
+        return ResponseEntity.ok(postResponseDto);
+    }
+
+    //게시글 수정
+    @PutMapping("/{postId}")
+    public ResponseEntity<String> updatePost(@PathVariable Long postId, Principal principal, @Valid @RequestBody PostCreateRequestDto postCreateRequestDto) {
+        Long updatedPostId = postService.updatePost(postId, principal.getName(), postCreateRequestDto);
+        return ResponseEntity.ok("성공적으로 수정되었습니다.");
+    }
+
+    //게시글 삭제
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<String> deletePost(@PathVariable Long postId, Principal principal) {
+        postService.deletePost(postId, principal.getName());
+        return ResponseEntity.ok("삭제되었습니다. ");
+    }
 }
