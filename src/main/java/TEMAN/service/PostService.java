@@ -53,4 +53,54 @@ public class PostService {
         return postRepository.findAllByPostCategoryEnumOrderByCreatedAtDesc(postCategoryEnum, pageable)
                 .map(PostResponseDto::fromEntity);
     }
+
+    //게시글 상세조회
+    @Transactional
+    public PostResponseDto getPost(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시물입니다. "));
+        return PostResponseDto.fromEntity(post);
+    }
+
+    //게시글 수정
+    @Transactional
+    public Long updatePost(Long postId, String email, PostCreateRequestDto postCreateRequestDto) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시물입니다. "));
+
+        //보안
+        if(!post.getUser().getEmail().equals(email)) {
+            throw new IllegalArgumentException("본인이 작성한 글만 수정할 수 있습니다. ");
+        }
+
+        //Dirty checking
+        post.updatePost(
+                postCreateRequestDto.postCategoryEnum(),
+                postCreateRequestDto.title(),
+                postCreateRequestDto.content(),
+                postCreateRequestDto.imageUrl(),
+                postCreateRequestDto.meetupDateTime(),
+                postCreateRequestDto.location(),
+                postCreateRequestDto.maxParticipants(),
+                postCreateRequestDto.price(),
+                postCreateRequestDto.companyName(),
+                postCreateRequestDto.salary()
+        );
+
+        return post.getId();
+    }
+
+    //게시글 삭제
+    @Transactional
+    public void deletePost(Long postId, String email) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시물입니다. "));
+
+        //보안
+        if(!post.getUser().getEmail().equals(email)) {
+            throw new IllegalArgumentException("본인이 작성한 글만 수정할 수 있습니다. ");
+        }
+
+        postRepository.delete(post);
+    }
 }
