@@ -19,8 +19,10 @@ public record PostResponseDto (
         String content,
         String imageUrl,
         int likeCount,
-        int commnetCount,
+        int commentCount,
         LocalDateTime createdAt,
+
+        Boolean isLiked,
 
         LocalDateTime meetupDateTime,
         String location,
@@ -30,7 +32,7 @@ public record PostResponseDto (
         String salary
 
 ) {
-    public static PostResponseDto fromEntity(Post post){
+    public static PostResponseDto fromEntity(Post post, boolean isLiked){
         return new PostResponseDto(
                 post.getId(),
                 post.getUser().getFullName(), // User 엔티티에서 작성자 이름 빼오기
@@ -42,6 +44,7 @@ public record PostResponseDto (
                 post.getLikeCount(),
                 post.getCommentCount(),
                 post.getCreatedAt(),
+                isLiked,
                 post.getMeetupDateTime(),
                 post.getLocation(),
                 post.getMaxParticipants(),
