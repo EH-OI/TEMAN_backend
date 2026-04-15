@@ -104,4 +104,6 @@ public class Post extends BaseTime{
     public void subLikeCount() {
         if(this.likeCount > 0) this.likeCount--;
     }
+    public void addCommentCount() { this.commentCount++; }
+    public void subCommentCount() { if(this.commentCount > 0 ) this.commentCount--;}
 }
