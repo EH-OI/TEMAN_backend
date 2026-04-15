@@ -31,25 +31,29 @@ public class PostController {
 
     //홈화면 전체 게시물
     @GetMapping
-    public ResponseEntity<Page<PostResponseDto>> getAllPost(@PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<PostResponseDto> posts = postService.getAllPosts(pageable);
+    public ResponseEntity<Page<PostResponseDto>> getAllPost(Principal principal, @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        String email = (principal != null) ? principal.getName():null;
+        Page<PostResponseDto> posts = postService.getAllPosts(pageable, email);
         return ResponseEntity.ok(posts);
     }
 
     //카테고리별 게시글
     @GetMapping("/category/{category}")
     public ResponseEntity<Page<PostResponseDto>> getPostsByCategory(
+            Principal principal,
             @PathVariable("category") PostCategoryEnum postCategoryEnum,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        Page<PostResponseDto> posts = postService.getPostCategory(postCategoryEnum, pageable);
+        String email = (principal != null) ? principal.getName() : null;
+        Page<PostResponseDto> posts = postService.getPostCategory(postCategoryEnum, pageable, email);
         return ResponseEntity.ok(posts);
     }
 
     //게시글 상세조회
     @GetMapping("/{postId}")
-    public ResponseEntity<PostResponseDto> getPost(@PathVariable Long postId){
-        PostResponseDto postResponseDto = postService.getPost(postId);
+    public ResponseEntity<PostResponseDto> getPost(Principal principal, @PathVariable Long postId){
+        String email = (principal != null) ? principal.getName() : null;
+        PostResponseDto postResponseDto = postService.getPost(postId, email);
         return ResponseEntity.ok(postResponseDto);
     }
 
