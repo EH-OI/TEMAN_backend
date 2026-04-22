@@ -1,15 +1,19 @@
 package TEMAN.domain;
 
-import TEMAN.domain.enums.PostCategoryEnum;
+import TEMAN.domain.enums.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.checkerframework.checker.units.qual.C;
+import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "posts")
@@ -29,7 +33,7 @@ public class Post extends BaseTime{
     @NotBlank
     private String title;
 
-    @Column
+    @Column(columnDefinition = "TEXT")
     @NotBlank
     private String content;
 
@@ -46,55 +50,136 @@ public class Post extends BaseTime{
     @NotNull
     private int commentCount = 0;
 
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "post_images", joinColumns = @JoinColumn(name = "post_id"))
+    @Column(name = "image_url")
+    private List<String> imageUrl = new ArrayList<>();
+
+
+    @Column
+    private Boolean isAnonymous;
+
+    @Enumerated(EnumType.STRING)
+    private MeetupsCategoryEnum meetupsCategoryEnum;
+
+    @Enumerated(EnumType.STRING)
+    private EventsCategoryEnum eventsCategoryEnum;
+
+    @Enumerated(EnumType.STRING)
+    private QnACategoryEnum qnACategoryEnum;
+
+    @Enumerated(EnumType.STRING)
+    private ProductCategoryEnum productCategoryEnum;
+
+    @Enumerated(EnumType.STRING)
+    private JobTypeEnum jobTypeEnum;
+
+
+
     @Column
     private LocalDateTime meetupDateTime;
-
     @Column
-    private String imageUrl;
+    private LocalDate eventDate;
+    @Column
+    private Boolean participantManagement;
 
+
+    // 추후 지도 api 사용시
     @Column
     private String location;
-
     @Column
-    private Long price;
-
+    private Double latitude; // 위도
     @Column
-    private String companyName;
+    private Double longitude; // 경도
 
-    @Column
-    private String salary;
 
     @Column
     private Integer maxParticipants;
+    @Column
+    private Long price;
+    @Column
+    private String salary;
+
+    @Column(nullable = false)
+    private Boolean isNotice = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column
+    private MeetupStatusEnum meetupStatusEnum;
+
 
     @Builder
-    public Post(User user, String title, String content, PostCategoryEnum postCategoryEnum, int likeCount, int commentCount, LocalDateTime meetupDateTime, String imageUrl, String location, Long price, String companyName, String salary, Integer maxParticipants) {
+    public Post(User user, String title, String content, PostCategoryEnum postCategoryEnum, int likeCount, int commentCount, List<String> imageUrl, Boolean isAnonymous, MeetupsCategoryEnum meetupsCategoryEnum, EventsCategoryEnum eventsCategoryEnum, QnACategoryEnum qnACategoryEnum, ProductCategoryEnum productCategoryEnum, JobTypeEnum jobTypeEnum, LocalDateTime meetupDateTime, LocalDate eventDate, Boolean participantManagement, String location, Double latitude, Double longitude, Integer maxParticipants, Long price, String salary, Boolean isNotice, MeetupStatusEnum meetupStatusEnum) {
         this.user = user;
         this.title = title;
         this.content = content;
         this.postCategoryEnum = postCategoryEnum;
+        this.likeCount = likeCount;
+        this.commentCount = commentCount;
+        this.imageUrl = (imageUrl != null) ? imageUrl : new ArrayList<>();
+        this.isAnonymous = (isAnonymous != null) ? isAnonymous : false;
+        this.meetupsCategoryEnum = meetupsCategoryEnum;
+        this.eventsCategoryEnum = eventsCategoryEnum;
+        this.qnACategoryEnum = qnACategoryEnum;
+        this.productCategoryEnum = productCategoryEnum;
+        this.jobTypeEnum = jobTypeEnum;
         this.meetupDateTime = meetupDateTime;
-        this.imageUrl = imageUrl;
+        this.eventDate = eventDate;
+        this.participantManagement = participantManagement;
         this.location = location;
-        this.price = price;
-        this.companyName = companyName;
-        this.salary = salary;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.maxParticipants = maxParticipants;
-        //likeCount, commentCount는 생성시 0으로 고정되므로 제외
+        this.price = price;
+        this.salary = salary;
+        this.isNotice = (isNotice != null) ? isNotice : false;
+        if (postCategoryEnum == PostCategoryEnum.MEETUPS || postCategoryEnum == PostCategoryEnum.MEETUPS) {
+            this.meetupStatusEnum = (meetupStatusEnum != null) ? meetupStatusEnum : MeetupStatusEnum.RECRUITING;
+        } else {
+            this.meetupStatusEnum = null;
+        }
     }
 
     //수정 로직
-    public void updatePost(PostCategoryEnum postCategoryEnum, String title, String content, String imageUrl, LocalDateTime meetupDateTime, String location, Integer maxParticipants, Long price, String companyName, String salary) {
+    public void updatePost(PostCategoryEnum postCategoryEnum, String title, String content,
+                           List<String> imageUrl, Boolean isAnonymous,
+                           MeetupsCategoryEnum meetupsCategoryEnum, EventsCategoryEnum eventsCategoryEnum,
+                           QnACategoryEnum qnACategoryEnum, ProductCategoryEnum productCategoryEnum, JobTypeEnum jobTypeEnum,
+                           LocalDateTime meetupDateTime, LocalDate eventDate, Boolean participantManagement,
+                           String location, Double latitude, Double longitude,
+                           Integer maxParticipants, Long price, String salary, Boolean isNotice, MeetupStatusEnum meetupStatusEnum) {
+
         this.postCategoryEnum = postCategoryEnum;
         this.title = title;
         this.content = content;
-        this.imageUrl = imageUrl;
+
+        this.imageUrl.clear();
+        if(imageUrl != null) {
+            this.imageUrl.addAll(imageUrl);
+        }
+
+        this.isAnonymous = (isAnonymous != null) ? isAnonymous : false;
+
+        this.meetupsCategoryEnum = meetupsCategoryEnum;
+        this.eventsCategoryEnum = eventsCategoryEnum;
+        this.qnACategoryEnum = qnACategoryEnum;
+        this.productCategoryEnum = productCategoryEnum;
+        this.jobTypeEnum = jobTypeEnum;
+
         this.meetupDateTime = meetupDateTime;
+        this.eventDate = eventDate;
+        this.participantManagement = (participantManagement != null) ? participantManagement : false;
+
         this.location = location;
+        this.latitude = latitude;
+        this.longitude = longitude;
+
         this.maxParticipants = maxParticipants;
         this.price = price;
-        this.companyName = companyName;
         this.salary = salary;
+
+        if (isNotice != null) this.isNotice = isNotice;
+        if (meetupStatusEnum != null) this.meetupStatusEnum = meetupStatusEnum;
     }
 
     //좋아요 수 조작
