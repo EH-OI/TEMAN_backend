@@ -147,4 +147,24 @@ public class User {
         if(interests != null) this.interests.addAll(interests);
     }
 
+    public void updateProfile(String fullName, String bio, String instagramId, List<String> interests, List<GenderEnum> genders, Boolean showGender, String profileImageUrl) {
+
+        if (fullName != null) this.fullName = fullName;
+        if (bio != null) this.bio = bio;
+        if (instagramId != null) this.instagramId = instagramId;
+        if (showGender != null) this.showGender = showGender;
+
+        // 프사 변경이 있을 때만 업데이트
+        if (profileImageUrl != null) this.profileImageUrl = profileImageUrl;
+
+        // 리스트 업데이트
+        if (interests != null) {
+            this.interests.clear();
+            this.interests.addAll(interests);
+        }
+        if (genders != null) {
+            this.genders.clear();
+            this.genders.addAll(genders);
+        }
+    }
 }
