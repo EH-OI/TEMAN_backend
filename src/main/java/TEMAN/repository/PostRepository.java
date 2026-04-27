@@ -12,10 +12,10 @@ import org.springframework.stereotype.Repository;
 public interface PostRepository extends JpaRepository<Post, Long> {
 
     //All
-    Page<Post> findAllByOrderByCreatedAtDesc(Pageable pageable);
+    Page<Post> findAllByOrderByIsNoticeDescCreatedAtDesc(Pageable pageable);
 
     //카테고리
-    Page<Post> findAllByPostCategoryEnumOrderByCreatedAtDesc(PostCategoryEnum postCategoryEnum, Pageable pageable);
+    Page<Post> findAllByPostCategoryEnumOrderByIsNoticeDescCreatedAtDesc(PostCategoryEnum postCategoryEnum, Pageable pageable);
 
     //my post
     Page<Post> findAllByUserOrderByCreatedAtDesc(User user, Pageable pageable);
