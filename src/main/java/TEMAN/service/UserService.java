@@ -37,9 +37,9 @@ public class UserService {
         if (socialLoginRequestDto.provider() == TEMAN.domain.enums.ProviderEnum.GOOGLE) {
             // 🔥 포스트맨 테스트용 임시 백도어 (프론트 연동할 때 지우면 됩니다!)
             if ("test_token".equals(socialLoginRequestDto.token())) {
-                email = "test_google@gmail.com";
-                socialId = "google_test_12345";
-                fullName = "구글 테스트 유저";
+                email = "host@gmail.com";
+                socialId = "google_host_123";
+                fullName = "방장";
             } else {
                 // 기존의 깐깐한 구글 진짜 검증 로직
                 try {
