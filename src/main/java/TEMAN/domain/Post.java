@@ -191,4 +191,9 @@ public class Post extends BaseTime{
     }
     public void addCommentCount() { this.commentCount++; }
     public void subCommentCount() { if(this.commentCount > 0 ) this.commentCount--;}
+
+    // 모집 마감 처리
+    public void closeMeetup() {
+        this.meetupStatusEnum = MeetupStatusEnum.CLOSED;
+    }
 }
