@@ -13,26 +13,22 @@ public class SwaggerConfig {
 
     @Bean
     public OpenAPI openAPI() {
-        String jwt = "JWT Authorization";
-        SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwt);
-
-        Components components = new Components().addSecuritySchemes(jwt, new SecurityScheme()
-                .name(jwt)
+        SecurityScheme apiKey = new SecurityScheme()
                 .type(SecurityScheme.Type.HTTP)
+                .in(SecurityScheme.In.HEADER)
+                .name("Authorization")
                 .scheme("bearer")
-                .bearerFormat("JWT")
-        );
+                .bearerFormat("JWT");
+
+        SecurityRequirement securityRequirement = new SecurityRequirement()
+                .addList("Bearer Token");
 
         return new OpenAPI()
-                .info(apiInfo())
-                .addSecurityItem(securityRequirement)
-                .components(components);
-    }
-
-    private Info apiInfo() {
-        return new Info()
-                .title("Monodatum IoT API")
-                .description("IoT Server API 명세서")
-                .version("1.0.0");
+                .info(new Info()
+                        .title("TEMAN 앱 API 명세서")
+                        .description("유학생 커뮤니티 TEMAN의 백엔드 API 명세서입니다.")
+                        .version("v1.0.0"))
+                .components(new Components().addSecuritySchemes("Bearer Token", apiKey))
+                .addSecurityItem(securityRequirement);
     }
 }
